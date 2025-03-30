@@ -7,16 +7,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const resetButton = document.getElementById('reset');
     const sound5SecondsCheckbox = document.getElementById('sound-5-seconds');
     const sound10SecondsCheckbox = document.getElementById('sound-10-seconds');
-    const beepSound = document.getElementById('beep');
-    const tickSound = document.getElementById('tick');
     
-    // Adjust sound volumes
-    beepSound.volume = 0.7;
-    tickSound.volume = 0.5;
-    
-    // Create backup tick sound in case the main one fails
-    const backupTickSound = new Audio('https://cdn.freesound.org/previews/522/522411_191718-lq.mp3');
-    backupTickSound.volume = 0.5;
+    // Better approach for audio - create new Audio objects instead of using DOM elements
+    let beepSound = null;
+    let tickSound = null;
     
     // Timer variables
     let timerState = 'ready'; // ready, pre-countdown, running, paused
@@ -26,11 +20,11 @@ document.addEventListener('DOMContentLoaded', () => {
     let lastTickAt5 = -1;
     let lastTickAt10 = -1;
     
+    // Initialize sounds
+    initSounds();
+    
     // Initial setup
     updateTimerDisplay();
-    
-    // Preload sounds
-    preloadSounds();
     
     // Event listeners
     playPauseButton.addEventListener('click', togglePlayPause);
@@ -45,33 +39,21 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     
-    function preloadSounds() {
-        // Try to preload the sounds
-        try {
-            beepSound.load();
-            tickSound.load();
-            backupTickSound.load();
-            
-            // Test play the sounds at volume 0 to ensure they're loaded and ready
-            const testPlay = (audio) => {
-                const originalVolume = audio.volume;
-                audio.volume = 0;
-                const promise = audio.play();
-                if (promise !== undefined) {
-                    promise.then(() => {
-                        audio.pause();
-                        audio.currentTime = 0;
-                        audio.volume = originalVolume;
-                    }).catch(e => console.log('Audio preload issue:', e));
-                }
-            };
-            
-            testPlay(beepSound);
-            testPlay(tickSound);
-            testPlay(backupTickSound);
-        } catch (e) {
-            console.log('Error preloading sounds:', e);
-        }
+    function initSounds() {
+        // Create new Audio objects instead of relying on the DOM elements
+        beepSound = new Audio('https://raw.githubusercontent.com/rafaelreis-hotmart/Audio-Sample-files/master/sample.mp3');
+        tickSound = new Audio('https://raw.githubusercontent.com/rafaelreis-hotmart/Audio-Sample-files/master/sample2.mp3');
+        
+        // Set volume
+        beepSound.volume = 0.8;
+        tickSound.volume = 0.6;
+        
+        // Enable sounds on mobile by adding a touch event to the body
+        document.body.addEventListener('touchstart', function() {
+            // Create and play a silent sound to enable audio on mobile
+            const silentSound = new Audio("data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4LjI5LjEwMAAAAAAAAAAAAAAA//tQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAADQADAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP/7UGQAAANUAUi0AAAIwwApFoAAAQBkBSLQAAAgAAC/2gAICAg8vLy8vLy8vLz8/Pz8/Pz8/Ly8vLy8vLy8vP//////////////////////////////////////////////////////////////////9PT09PT09PT09PT////////////////////////////////////////////////////////////////x8fHx8fHx8fHx8f/////////////////////////////////////////////////////////////7UGUAVAA+wBC7AAACAAAJYAAAAQAAAEuAAAAIAAAJcAAAAT//////////////////////////////////////////////////////////////////5ubm5ubm5ubm5v/////////////////////////////////////////////////////////////i4uLi4uLi4uLi4v/////////////////////////////////////////////////////////////7UGUAggA5gEtMAAAIAAAJYAAAAQAAASwAAAAgAAAlgAAABP/////////////////////////////////////////////////////////////w8PDw8PDw8PDw8P////////////////////////////////////////////////////////////Dw8PDw8PDw8PDw8P/////////////////////////////////////////////////////////////7UGUBJwAzAEtAAAAIAAAJYAAAAQAAASwAAAAgAAAlgAAABP////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////7UGUAVAAyAErAAAAIAAAJYAAAAQAAASwAAAAgAAAlgAAABP////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////7UGUAggA1AEqsAAAIAAAJYAAAAQAAASwAAAAgAAAlgAAABP////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////7UGUAggA1gEqMAAAIAAAJYAAAAQAAASwAAAAgAAAlgAAABP////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////7UGUAgAApAUAAAAACAAAJYAAAAQAAASwAAAAgAAAlgAAABP/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////AAA=");
+            silentSound.play().catch(e => {});
+        }, {once: true});
     }
     
     function togglePlayPause() {
@@ -91,7 +73,8 @@ document.addEventListener('DOMContentLoaded', () => {
             
             timerInterval = setInterval(updateTimer, 1000);
             
-            playPauseButton.textContent = 'Pause';
+            // Update button icon and text
+            playPauseButton.innerHTML = '<i class="fas fa-pause"></i> Pause';
         } else if (timerState === 'paused') {
             // Resume timer
             if (preCountdownValue > 0) {
@@ -102,7 +85,8 @@ document.addEventListener('DOMContentLoaded', () => {
             
             timerInterval = setInterval(updateTimer, 1000);
             
-            playPauseButton.textContent = 'Pause';
+            // Update button icon and text
+            playPauseButton.innerHTML = '<i class="fas fa-pause"></i> Pause';
         }
     }
     
@@ -116,7 +100,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 timerValue = 0;
                 lastTickAt5 = -1;
                 lastTickAt10 = -1;
-                playBeepSound();
+                playSound(beepSound, true); // Play beep with higher priority
             }
         } else if (timerState === 'running') {
             timerValue++;
@@ -128,61 +112,53 @@ document.addEventListener('DOMContentLoaded', () => {
         updateTimerDisplay();
     }
     
-    function playBeepSound() {
+    function playSound(sound, important = false) {
         try {
-            // Reset and play the beep sound
-            beepSound.currentTime = 0;
-            const promise = beepSound.play();
-            if (promise !== undefined) {
-                promise.catch(error => {
-                    console.log('Error playing beep sound:', error);
-                    // Try to create and play a new Audio object as fallback
-                    const fallbackBeep = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
-                    fallbackBeep.volume = 0.7;
-                    fallbackBeep.play().catch(e => console.log('Fallback beep failed too:', e));
+            // Create a new instance to allow overlapping sounds
+            const soundToPlay = new Audio(sound.src);
+            soundToPlay.volume = sound.volume;
+            
+            // For important sounds like the beep, try multiple approaches
+            if (important) {
+                // Try the normal way first
+                soundToPlay.play().catch(err => {
+                    console.log('Error playing sound:', err);
+                    
+                    // If that fails, try with user interaction simulation
+                    document.body.addEventListener('click', function playOnClick() {
+                        soundToPlay.play().catch(e => console.log('Still failed:', e));
+                        document.body.removeEventListener('click', playOnClick);
+                    }, { once: true });
+                    
+                    // Prompt the user to interact
+                    timerStateDisplay.textContent = "TAP SCREEN FOR SOUND";
+                    setTimeout(() => {
+                        if (timerState === 'running') {
+                            timerStateDisplay.textContent = "TIMER";
+                        }
+                    }, 2000);
+                });
+            } else {
+                // For less important sounds, just try once
+                soundToPlay.play().catch(err => {
+                    console.log('Error playing interval sound:', err);
                 });
             }
-        } catch (error) {
-            console.log('Error playing beep sound:', error);
-        }
-    }
-    
-    function playTickSound() {
-        try {
-            // Reset and play the tick sound
-            tickSound.currentTime = 0;
-            const promise = tickSound.play();
-            if (promise !== undefined) {
-                promise.catch(error => {
-                    console.log('Error playing tick sound:', error);
-                    // Try the backup tick sound
-                    try {
-                        backupTickSound.currentTime = 0;
-                        backupTickSound.play().catch(e => console.log('Backup tick failed too:', e));
-                    } catch (e) {
-                        console.log('Error with backup tick:', e);
-                    }
-                });
-            }
-        } catch (error) {
-            console.log('Error playing tick sound:', error);
-            // Try the backup
-            try {
-                backupTickSound.currentTime = 0;
-                backupTickSound.play().catch(e => {});
-            } catch (e) {}
+        } catch (err) {
+            console.log('Error creating sound:', err);
         }
     }
     
     function checkIntervalSounds() {
-        // Prevent duplicate ticks when numbers align (like at 10 seconds which is both % 5 and % 10)
+        // Sound at 5 second intervals
         if (sound5SecondsCheckbox.checked && timerValue % 5 === 0 && lastTickAt5 !== timerValue) {
-            playTickSound();
+            playSound(tickSound);
             lastTickAt5 = timerValue;
         }
         
+        // Sound at 10 second intervals
         if (sound10SecondsCheckbox.checked && timerValue % 10 === 0 && lastTickAt10 !== timerValue) {
-            playTickSound();
+            playSound(tickSound);
             lastTickAt10 = timerValue;
         }
     }
@@ -190,7 +166,10 @@ document.addEventListener('DOMContentLoaded', () => {
     function pauseTimer() {
         timerState = 'paused';
         clearInterval(timerInterval);
-        playPauseButton.textContent = 'Play';
+        
+        // Update button icon and text
+        playPauseButton.innerHTML = '<i class="fas fa-play"></i> Play';
+        
         updateTimerDisplay();
     }
     
@@ -201,7 +180,10 @@ document.addEventListener('DOMContentLoaded', () => {
         lastTickAt5 = -1;
         lastTickAt10 = -1;
         clearInterval(timerInterval);
-        playPauseButton.textContent = 'Play';
+        
+        // Update button icon and text
+        playPauseButton.innerHTML = '<i class="fas fa-play"></i> Play';
+        
         updateTimerDisplay();
     }
     
@@ -209,23 +191,23 @@ document.addEventListener('DOMContentLoaded', () => {
         // Update timer state text
         switch (timerState) {
             case 'ready':
-                timerStateDisplay.textContent = 'Ready';
+                timerStateDisplay.textContent = 'READY';
                 timerDisplay.textContent = '0';
                 break;
             case 'pre-countdown':
-                timerStateDisplay.textContent = 'Starting in';
+                timerStateDisplay.textContent = 'STARTING IN';
                 timerDisplay.textContent = preCountdownValue;
                 break;
             case 'running':
-                timerStateDisplay.textContent = 'Timer';
+                timerStateDisplay.textContent = 'TIMER';
                 timerDisplay.textContent = formatTime(timerValue);
                 break;
             case 'paused':
                 if (preCountdownValue > 0) {
-                    timerStateDisplay.textContent = 'Paused (Starting in)';
+                    timerStateDisplay.textContent = 'PAUSED (STARTING IN)';
                     timerDisplay.textContent = preCountdownValue;
                 } else {
-                    timerStateDisplay.textContent = 'Paused';
+                    timerStateDisplay.textContent = 'PAUSED';
                     timerDisplay.textContent = formatTime(timerValue);
                 }
                 break;
@@ -236,7 +218,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return seconds.toString();
     }
     
-    // Add keyboard support for spacebar to play/pause
+    // Add keyboard support for spacebar to play/pause and r key to reset
     document.addEventListener('keydown', (event) => {
         if (event.code === 'Space') {
             event.preventDefault();
