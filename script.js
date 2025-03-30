@@ -12,24 +12,11 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Adjust sound volumes
     beepSound.volume = 0.6;
-    tickSound.volume = 0.5; // Increased volume for better audibility
+    tickSound.volume = 0.4;
     
-    // Preload sounds and add error handling
-    try {
-        beepSound.load();
-        tickSound.load();
-        
-        // Test if audio can be played
-        tickSound.addEventListener('canplaythrough', () => {
-            console.log('Tick sound loaded successfully');
-        });
-        
-        tickSound.addEventListener('error', (e) => {
-            console.error('Error loading tick sound:', e);
-        });
-    } catch (error) {
-        console.error('Error preloading sounds:', error);
-    }
+    // Preload sounds
+    beepSound.load();
+    tickSound.load();
     
     // Timer variables
     let timerState = 'ready'; // ready, pre-countdown, running, paused
@@ -43,15 +30,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // Event listeners
     playPauseButton.addEventListener('click', togglePlayPause);
     resetButton.addEventListener('click', resetTimer);
-    
-    // Debug checkbox state changes
-    sound5SecondsCheckbox.addEventListener('change', () => {
-        console.log('5 seconds checkbox changed:', sound5SecondsCheckbox.checked);
-    });
-    
-    sound10SecondsCheckbox.addEventListener('change', () => {
-        console.log('10 seconds checkbox changed:', sound10SecondsCheckbox.checked);
-    });
     
     // Prevent negative numbers in input
     preCountdownInput.addEventListener('change', () => {
@@ -102,7 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Pre-countdown finished, start main timer
                 timerState = 'running';
                 timerValue = 0;
-                playBeepSound();
+                playSound(beepSound);
             }
         } else if (timerState === 'running') {
             timerValue++;
@@ -114,49 +92,20 @@ document.addEventListener('DOMContentLoaded', () => {
         updateTimerDisplay();
     }
     
-    function playBeepSound() {
+    function playSound(soundElement) {
         try {
             // Reset audio to beginning and play
-            beepSound.currentTime = 0;
-            const playPromise = beepSound.play();
+            soundElement.currentTime = 0;
+            const playPromise = soundElement.play();
             
             // Handle the promise to prevent uncaught errors
             if (playPromise !== undefined) {
                 playPromise.catch(error => {
-                    console.error('Error playing beep sound:', error);
+                    console.error('Error playing sound:', error);
                 });
             }
         } catch (error) {
-            console.error('Error playing beep sound:', error);
-        }
-    }
-    
-    function playTickSound() {
-        try {
-            // Create a temporary clone of the sound for overlapping sounds
-            const tickSoundClone = new Audio(tickSound.src);
-            tickSoundClone.volume = tickSound.volume;
-            
-            const playPromise = tickSoundClone.play();
-            
-            // Handle the promise to prevent uncaught errors
-            if (playPromise !== undefined) {
-                playPromise.catch(error => {
-                    console.error('Error playing tick sound:', error);
-                    // Fallback to original audio element if cloning fails
-                    tickSound.currentTime = 0;
-                    tickSound.play().catch(e => console.error('Fallback tick sound failed:', e));
-                });
-            }
-        } catch (error) {
-            console.error('Error playing tick sound:', error);
-            // Another fallback attempt
-            try {
-                tickSound.currentTime = 0;
-                tickSound.play();
-            } catch (e) {
-                console.error('Final fallback failed:', e);
-            }
+            console.error('Error playing sound:', error);
         }
     }
     
@@ -167,7 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (playSound5Seconds || playSound10Seconds) {
             console.log(`Playing tick sound at ${timerValue} seconds`);
-            playTickSound();
+            playSound(tickSound);
         }
     }
     
