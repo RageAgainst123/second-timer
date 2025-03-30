@@ -10,6 +10,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const beepSound = document.getElementById('beep');
     const tickSound = document.getElementById('tick');
     
+    // Adjust sound volumes
+    beepSound.volume = 0.6;
+    tickSound.volume = 0.3;
+    
+    // Preload sounds
+    beepSound.load();
+    tickSound.load();
+    
     // Timer variables
     let timerState = 'ready'; // ready, pre-countdown, running, paused
     let preCountdownValue = 0;
@@ -22,6 +30,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // Event listeners
     playPauseButton.addEventListener('click', togglePlayPause);
     resetButton.addEventListener('click', resetTimer);
+    
+    // Prevent negative numbers in input
+    preCountdownInput.addEventListener('change', () => {
+        if (preCountdownInput.value < 1) {
+            preCountdownInput.value = 1;
+        } else if (preCountdownInput.value > 60) {
+            preCountdownInput.value = 60;
+        }
+    });
     
     function togglePlayPause() {
         if (timerState === 'ready' || timerState === 'paused') {
@@ -38,29 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
             preCountdownValue = parseInt(preCountdownInput.value);
             updateTimerDisplay();
             
-            timerInterval = setInterval(() => {
-                if (timerState === 'pre-countdown') {
-                    preCountdownValue--;
-                    
-                    if (preCountdownValue <= 0) {
-                        // Pre-countdown finished, start main timer
-                        timerState = 'running';
-                        timerValue = 0;
-                        beepSound.play(); // Play sound when main timer starts
-                    }
-                } else if (timerState === 'running') {
-                    timerValue++;
-                    
-                    // Check if we need to play sounds at specific intervals
-                    if (sound5SecondsCheckbox.checked && timerValue % 5 === 0) {
-                        tickSound.play();
-                    } else if (sound10SecondsCheckbox.checked && timerValue % 10 === 0) {
-                        tickSound.play();
-                    }
-                }
-                
-                updateTimerDisplay();
-            }, 1000);
+            timerInterval = setInterval(updateTimer, 1000);
             
             playPauseButton.textContent = 'Pause';
         } else if (timerState === 'paused') {
@@ -71,31 +66,62 @@ document.addEventListener('DOMContentLoaded', () => {
                 timerState = 'running';
             }
             
-            timerInterval = setInterval(() => {
-                if (timerState === 'pre-countdown') {
-                    preCountdownValue--;
-                    
-                    if (preCountdownValue <= 0) {
-                        // Pre-countdown finished, start main timer
-                        timerState = 'running';
-                        timerValue = 0;
-                        beepSound.play(); // Play sound when main timer starts
-                    }
-                } else if (timerState === 'running') {
-                    timerValue++;
-                    
-                    // Check if we need to play sounds at specific intervals
-                    if (sound5SecondsCheckbox.checked && timerValue % 5 === 0) {
-                        tickSound.play();
-                    } else if (sound10SecondsCheckbox.checked && timerValue % 10 === 0) {
-                        tickSound.play();
-                    }
-                }
-                
-                updateTimerDisplay();
-            }, 1000);
+            timerInterval = setInterval(updateTimer, 1000);
             
             playPauseButton.textContent = 'Pause';
+        }
+    }
+    
+    function updateTimer() {
+        if (timerState === 'pre-countdown') {
+            preCountdownValue--;
+            
+            if (preCountdownValue <= 0) {
+                // Pre-countdown finished, start main timer
+                timerState = 'running';
+                timerValue = 0;
+                playBeepSound();
+            }
+        } else if (timerState === 'running') {
+            timerValue++;
+            
+            // Check if we need to play sounds at specific intervals
+            checkSounds();
+        }
+        
+        updateTimerDisplay();
+    }
+    
+    function playBeepSound() {
+        // Create a clone for overlapping sounds
+        try {
+            beepSound.currentTime = 0;
+            beepSound.play().catch(error => {
+                console.log('Error playing sound:', error);
+            });
+        } catch (error) {
+            console.log('Error playing sound:', error);
+        }
+    }
+    
+    function playTickSound() {
+        // Create a clone for overlapping sounds
+        try {
+            tickSound.currentTime = 0;
+            tickSound.play().catch(error => {
+                console.log('Error playing sound:', error);
+            });
+        } catch (error) {
+            console.log('Error playing sound:', error);
+        }
+    }
+    
+    function checkSounds() {
+        const playSound5Seconds = sound5SecondsCheckbox.checked && timerValue % 5 === 0;
+        const playSound10Seconds = sound10SecondsCheckbox.checked && timerValue % 10 === 0;
+        
+        if (playSound5Seconds || playSound10Seconds) {
+            playTickSound();
         }
     }
     
@@ -143,8 +169,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function formatTime(seconds) {
-        // For now, just return the seconds as is, but this function can be expanded
-        // to format time as minutes:seconds if needed in the future
         return seconds.toString();
     }
+    
+    // Add keyboard support for spacebar to play/pause
+    document.addEventListener('keydown', (event) => {
+        if (event.code === 'Space') {
+            event.preventDefault();
+            togglePlayPause();
+        } else if (event.code === 'KeyR') {
+            resetTimer();
+        }
+    });
 }); 
