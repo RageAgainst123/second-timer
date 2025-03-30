@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Adjust sound volumes
     beepSound.volume = 0.6;
-    tickSound.volume = 0.4;
+    tickSound.volume = 0.3;
     
     // Preload sounds
     beepSound.load();
