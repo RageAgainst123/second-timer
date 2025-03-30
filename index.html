@@ -12,15 +12,15 @@
 </head>
 <body>
     <div class="container">
-        <h1><i class="fas fa-stopwatch"></i> Second Timer</h1>
-        
-        <div class="setup-section">
-            <label for="pre-countdown">Pre-countdown time (seconds):</label>
-            <input type="number" id="pre-countdown" min="1" max="60" value="5">
+        <div class="header">
+            <h1><i class="fas fa-stopwatch"></i> Second Timer</h1>
+            <button id="settings-btn" class="settings-btn" title="Settings">
+                <i class="fas fa-cog"></i>
+            </button>
         </div>
         
         <div class="timer-display">
-            <div id="timer-state">Ready</div>
+            <div id="timer-state">READY</div>
             <div id="timer">0</div>
         </div>
         
@@ -28,22 +28,117 @@
             <button id="play-pause"><i class="fas fa-play"></i> Play</button>
             <button id="reset"><i class="fas fa-undo"></i> Reset</button>
         </div>
-        
-        <div class="sound-options">
-            <div class="checkbox-container">
-                <input type="checkbox" id="sound-5-seconds">
-                <label for="sound-5-seconds"><i class="fas fa-volume-up"></i> Sound every 5 seconds</label>
+    </div>
+    
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-cog"></i> Timer Settings</h2>
+                <button id="close-modal"><i class="fas fa-times"></i></button>
             </div>
-            <div class="checkbox-container">
-                <input type="checkbox" id="sound-10-seconds">
-                <label for="sound-10-seconds"><i class="fas fa-volume-up"></i> Sound every 10 seconds</label>
+            <div class="modal-body">
+                <div class="settings-section">
+                    <h3>Timer Configuration</h3>
+                    <div class="sound-setting">
+                        <label for="pre-countdown">Pre-countdown time:</label>
+                        <input type="number" id="pre-countdown" min="1" max="60" value="5" class="settings-input">
+                        <span>seconds</span>
+                    </div>
+                </div>
+                
+                <div class="settings-section">
+                    <h3>Interval Sound Options</h3>
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="sound-5-seconds">
+                        <label for="sound-5-seconds"><i class="fas fa-volume-up"></i> Sound every 5 seconds</label>
+                    </div>
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="sound-10-seconds">
+                        <label for="sound-10-seconds"><i class="fas fa-volume-up"></i> Sound every 10 seconds</label>
+                    </div>
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="sound-custom-interval">
+                        <label for="sound-custom-interval"><i class="fas fa-volume-up"></i> Sound at custom interval</label>
+                    </div>
+                    <div class="sound-setting custom-interval-setting">
+                        <label for="custom-interval">Every <input type="number" id="custom-interval" min="1" max="60" value="15"> seconds</label>
+                    </div>
+                </div>
+                
+                <div class="settings-section">
+                    <h3>Main Timer Start Sound</h3>
+                    <div class="sound-setting">
+                        <label for="main-sound-select">Sound Type:</label>
+                        <select id="main-sound-select">
+                            <option value="beep">Beep</option>
+                            <option value="bell">Bell</option>
+                            <option value="chime">Chime</option>
+                            <option value="ding">Ding</option>
+                            <option value="whistle">Whistle</option>
+                        </select>
+                        <button id="test-main-sound" class="test-sound-btn"><i class="fas fa-play"></i> Test</button>
+                    </div>
+                    <div class="sound-setting">
+                        <label for="main-sound-volume">Volume:</label>
+                        <input type="range" id="main-sound-volume" min="0" max="1" step="0.1" value="0.8">
+                        <span id="main-volume-value">80%</span>
+                    </div>
+                </div>
+                
+                <div class="settings-section">
+                    <h3>Interval Sounds</h3>
+                    <div class="sound-setting">
+                        <label for="interval-sound-select">Sound Type:</label>
+                        <select id="interval-sound-select">
+                            <option value="tick">Tick</option>
+                            <option value="click">Click</option>
+                            <option value="pop">Pop</option>
+                            <option value="blip">Blip</option>
+                            <option value="beep-short">Short Beep</option>
+                        </select>
+                        <button id="test-interval-sound" class="test-sound-btn"><i class="fas fa-play"></i> Test</button>
+                    </div>
+                    <div class="sound-setting">
+                        <label for="interval-sound-volume">Volume:</label>
+                        <input type="range" id="interval-sound-volume" min="0" max="1" step="0.1" value="0.6">
+                        <span id="interval-volume-value">60%</span>
+                    </div>
+                </div>
+                
+                <div class="settings-section">
+                    <h3>Sound Effects</h3>
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="enable-main-sound" checked>
+                        <label for="enable-main-sound">Enable main start sound</label>
+                    </div>
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="enable-interval-sounds" checked>
+                        <label for="enable-interval-sounds">Enable interval sounds</label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="save-settings" class="btn-primary">Save Settings</button>
             </div>
         </div>
     </div>
     
-    <!-- Using simple, reliable audio sources -->
-    <audio id="beep" src="https://raw.githubusercontent.com/rafaelreis-hotmart/Audio-Sample-files/master/sample.mp3" preload="auto"></audio>
-    <audio id="tick" src="https://raw.githubusercontent.com/rafaelreis-hotmart/Audio-Sample-files/master/sample2.mp3" preload="auto"></audio>
+    <!-- Using short sound sources for better performance -->
+    <audio id="beep" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_860b0718e9.mp3?filename=bells-notification-150-153825.mp3" preload="auto"></audio>
+    <audio id="tick" src="https://cdn.pixabay.com/download/audio/2022/01/18/audio_9d2dd04c42.mp3?filename=mouse-click-153941.mp3" preload="auto"></audio>
+    
+    <!-- Additional sound options (shorter versions) -->
+    <audio id="bell" src="https://cdn.pixabay.com/download/audio/2021/08/04/audio_c342b8fd36.mp3?filename=ding-126626.mp3" preload="auto"></audio>
+    <audio id="chime" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_1955a8c05a.mp3?filename=notification-sound-7062.mp3" preload="auto"></audio>
+    <audio id="ding" src="https://cdn.pixabay.com/download/audio/2021/08/04/audio_8d50c9624a.mp3?filename=ting-126521.mp3" preload="auto"></audio>
+    <audio id="whistle" src="https://cdn.pixabay.com/download/audio/2021/08/04/audio_d682f126c9.mp3?filename=beep-6-96243.mp3" preload="auto"></audio>
+    
+    <!-- Additional interval sounds (shorter versions) -->
+    <audio id="click" src="https://cdn.pixabay.com/download/audio/2021/08/04/audio_c9a4526b11.mp3?filename=click-21156.mp3" preload="auto"></audio>
+    <audio id="pop" src="https://cdn.pixabay.com/download/audio/2021/08/04/audio_12b0c7443c.mp3?filename=pop-39222.mp3" preload="auto"></audio>
+    <audio id="blip" src="https://cdn.pixabay.com/download/audio/2021/08/04/audio_55f0fb06ea.mp3?filename=ping-82822.mp3" preload="auto"></audio>
+    <audio id="beep-short" src="https://cdn.pixabay.com/download/audio/2021/08/04/audio_d682f126c9.mp3?filename=beep-6-96243.mp3" preload="auto"></audio>
     
     <script src="script.js"></script>
 </body>
